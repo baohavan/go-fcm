@@ -42,7 +42,7 @@ package main
 import (
 	"log"
 
-	"github.com/appleboy/go-fcm"
+	"github.com/baohavan/go-fcm"
 )
 
 func main() {
