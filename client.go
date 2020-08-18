@@ -5,7 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
 	"fmt"
+	"google.golang.org/api/option"
 	"net/http"
 	"time"
 )
@@ -20,7 +23,8 @@ const (
 
 var (
 	// ErrInvalidAPIKey occurs if API key is not set.
-	ErrInvalidAPIKey = errors.New("client API Key is invalid")
+	ErrInvalidAPIKey          = errors.New("client API Key is invalid")
+	ErrInvalidCredentialsPath = errors.New("credentials path is invalid")
 )
 
 // Client abstracts the interaction between the application server and the
@@ -32,10 +36,12 @@ var (
 // If the `HTTP` field is nil, a zeroed http.Client will be allocated and used
 // to send messages.
 type Client struct {
-	apiKey   string
-	client   *http.Client
-	endpoint string
-	timeout  time.Duration
+	apiKey    string
+	client    *http.Client
+	endpoint  string
+	timeout   time.Duration
+	app       *firebase.App
+	msgClient *messaging.Client
 }
 
 // NewClient creates new Firebase Cloud Messaging Client based on API key and
@@ -49,7 +55,38 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		endpoint: DefaultEndpoint,
 		client:   &http.Client{},
 		timeout:  DefaultTimeout,
+		app:      nil,
 	}
+	for _, o := range opts {
+		if err := o(c); err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
+}
+
+// NewClient creates new Firebase Cloud Messaging Client based on Credentials file and
+// with default endpoint and http client.
+func NewClientWithCredentials(path string, opts ...Option) (*Client, error) {
+	if path == "" {
+		return nil, ErrInvalidCredentialsPath
+	}
+
+	ctx := context.Background()
+	app, err := firebase.NewApp(ctx, nil, option.WithCredentialsFile(path))
+	if err != nil {
+		return nil, err
+	}
+
+	c := &Client{
+		endpoint:  DefaultEndpoint,
+		client:    nil,
+		timeout:   DefaultTimeout,
+		app:       app,
+		msgClient: nil,
+	}
+
 	for _, o := range opts {
 		if err := o(c); err != nil {
 			return nil, err
@@ -69,13 +106,17 @@ func (c *Client) SendWithContext(ctx context.Context, msg *Message) (*Response, 
 		return nil, err
 	}
 
-	// marshal message
-	data, err := json.Marshal(msg)
-	if err != nil {
-		return nil, err
-	}
+	if c.app != nil {
+		return c.sendByApp(ctx, msg)
+	} else {
+		// marshal message
+		data, err := json.Marshal(msg)
+		if err != nil {
+			return nil, err
+		}
 
-	return c.send(ctx, data)
+		return c.send(ctx, data)
+	}
 }
 
 // Send sends a message to the FCM server without retrying in case of service
@@ -159,4 +200,81 @@ func (c *Client) send(ctx context.Context, data []byte) (*Response, error) {
 	}
 
 	return response, nil
+}
+
+// send by app
+func (c *Client) sendByApp(ctx context.Context, msg *Message) (*Response, error) {
+	if c.msgClient == nil {
+		var err error
+		c.msgClient, err = c.app.Messaging(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(msg.RegistrationIDs) > 0 && len(msg.RegistrationIDs) < 2 {
+		fcmMsg := &messaging.Message{
+			Token: msg.RegistrationIDs[0],
+			Data:  msg.Data,
+		}
+
+		if msg.Notification != nil {
+			fcmMsg.Notification = &messaging.Notification{
+				Title: msg.Notification.Title,
+				Body:  msg.Notification.Body,
+			}
+		}
+
+		r, err := c.msgClient.Send(ctx, fcmMsg)
+		res := &Response{}
+		if err != nil {
+			res.Success = 0
+			res.Failure = 1
+		} else {
+			res.Success = 1
+			res.Failure = 0
+		}
+
+		res.ErrorResponseCode = r
+
+		return res, err
+	} else {
+		fcmMsg := &messaging.MulticastMessage{
+			Tokens: msg.RegistrationIDs,
+			Data:   msg.Data,
+		}
+
+		if msg.Notification != nil {
+			fcmMsg.Notification = &messaging.Notification{
+				Title: msg.Notification.Title,
+				Body:  msg.Notification.Body,
+			}
+		}
+
+		r, err := c.msgClient.SendMulticast(ctx, fcmMsg)
+		res := &Response{}
+		if err != nil {
+			res.Success = 0
+			res.Failure = len(msg.RegistrationIDs)
+		} else {
+			res.Success = r.SuccessCount
+			res.Failure = 0
+		}
+
+		for _, result := range r.Responses {
+			if result.Error == nil {
+				res.Results = append(res.Results, Result{
+					Error:     result.Error,
+					MessageID: result.MessageID,
+				})
+			} else {
+				res.Results = append(res.Results, Result{
+					Error:             result.Error,
+					ErrorResponseCode: result.Error.Error(),
+				})
+			}
+		}
+
+		return res, err
+	}
 }

@@ -8,7 +8,7 @@ func TestValidate(t *testing.T) {
 		msg := &Message{
 			To:         "test",
 			TimeToLive: &timeToLive,
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}
@@ -28,7 +28,7 @@ func TestValidate(t *testing.T) {
 
 	t.Run("invalid target", func(t *testing.T) {
 		msg := &Message{
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}
@@ -55,7 +55,7 @@ func TestValidate(t *testing.T) {
 			To:              "test",
 			RegistrationIDs: []string{"reg_id"},
 			TimeToLive:      &timeToLive,
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}
@@ -68,7 +68,7 @@ func TestValidate(t *testing.T) {
 	t.Run("valid with registration ID", func(t *testing.T) {
 		msg := &Message{
 			RegistrationIDs: []string{"reg_id"},
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}
@@ -81,7 +81,7 @@ func TestValidate(t *testing.T) {
 	t.Run("valid with condition", func(t *testing.T) {
 		msg := &Message{
 			Condition: "'dogs' in topics || 'cats' in topics",
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}
@@ -94,7 +94,7 @@ func TestValidate(t *testing.T) {
 	t.Run("invalid condition", func(t *testing.T) {
 		msg := &Message{
 			Condition: "'TopicA' in topics && 'TopicB' in topics && 'TopicC' in topics && 'TopicD' in topics && 'TopicE' in topics && 'TopicF' in topics && 'TopicG' in topics && 'TopicH' in topics",
-			Data: map[string]interface{}{
+			Data: map[string]string{
 				"message": "This is a Firebase Cloud Messaging Topic Message!",
 			},
 		}

@@ -10,7 +10,7 @@ func main() {
 	// Create the message to be sent.
 	msg := &fcm.Message{
 		To: "sample_device_token",
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"foo": "bar",
 		},
 	}
