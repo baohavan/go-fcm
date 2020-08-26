@@ -35,7 +35,7 @@ func TestSend(t *testing.T) {
 		}
 		resp, err := client.Send(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -75,7 +75,7 @@ func TestSend(t *testing.T) {
 		}
 		resp, err := client.Send(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -105,7 +105,7 @@ func TestSend(t *testing.T) {
 		}
 		resp, err := client.Send(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -164,7 +164,7 @@ func TestSend(t *testing.T) {
 		}
 		resp, err := client.Send(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -207,7 +207,7 @@ func TestSendWithRetry(t *testing.T) {
 		}
 		resp, err := client.SendWithRetry(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 3)
@@ -240,7 +240,7 @@ func TestSendWithRetry(t *testing.T) {
 		}
 		resp, err := client.SendWithRetry(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 2)
@@ -288,7 +288,7 @@ func TestSendWithRetry(t *testing.T) {
 		}
 		resp, err := client.SendWithRetry(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 4)
@@ -320,7 +320,7 @@ func TestSendWithRetry(t *testing.T) {
 		}
 		resp, err := client.SendWithRetry(&Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 3)
@@ -365,7 +365,7 @@ func TestSendWithRetryWithContext(t *testing.T) {
 		ctx := context.Background()
 		resp, err := client.SendWithRetryWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 3)
@@ -400,7 +400,7 @@ func TestSendWithRetryWithContext(t *testing.T) {
 		ctx := context.Background()
 		resp, err := client.SendWithRetryWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 2)
@@ -450,7 +450,7 @@ func TestSendWithRetryWithContext(t *testing.T) {
 		ctx := context.Background()
 		resp, err := client.SendWithRetryWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 4)
@@ -484,7 +484,7 @@ func TestSendWithRetryWithContext(t *testing.T) {
 		ctx := context.Background()
 		resp, err := client.SendWithRetryWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 3)
@@ -532,7 +532,7 @@ func TestSendWithRetryWithContext(t *testing.T) {
 		defer cancel()
 		_, err = client.SendWithRetryWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		}, 4)
@@ -579,7 +579,7 @@ func TestSendWithContext(t *testing.T) {
 		ctx := context.Background()
 		resp, err := client.SendWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -623,7 +623,7 @@ func TestSendWithContext(t *testing.T) {
 		defer cancel()
 		_, err = client.SendWithContext(ctx, &Message{
 			To: "test",
-			Data: map[string]string{
+			Data: map[string]interface{}{
 				"foo": "bar",
 			},
 		})
@@ -636,4 +636,25 @@ func TestSendWithContext(t *testing.T) {
 			t.Fatalf("error is not fcm.connectionError \ngot: %T", err)
 		}
 	})
+}
+
+func TestSendByApp(t *testing.T) {
+	client, err := NewClientWithCredentials("/Users/baohavan/Downloads/netalo-firebase-adminsdk-fqhdg-1e0f91f588.json")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	resp, err := client.Send(&Message{
+		RegistrationIDs: []string{"dvDKmn2-RWm_yGCN_YbsQL:APA91bH4TBqAvWDxcugY943g8vwb47ZGPrWtNp3xjxP9Ozsr7gy82O4_gV0PiayumuH6v4RwLyjMuv9ZcmrbhQd0Cbq7H-HESDTN_D3VZdNHvKmsTh7GWEzYrq2KEJP2fHObWysrWpDP"},
+		To:              "dvDKmn2-RWm_yGCN_YbsQL:APA91bH4TBqAvWDxcugY943g8vwb47ZGPrWtNp3xjxP9Ozsr7gy82O4_gV0PiayumuH6v4RwLyjMuv9ZcmrbhQd0Cbq7H-HESDTN_D3VZdNHvKmsTh7GWEzYrq2KEJP2fHObWysrWpDP",
+		Notification: &Notification{
+			Title: "test",
+			Body:  "desc",
+		},
+		Data: map[string]interface{}{
+			"foo": "bar",
+		},
+	})
+
+	t.Logf("Response: %v, %v", err, resp)
 }

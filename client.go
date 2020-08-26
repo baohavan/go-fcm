@@ -212,10 +212,14 @@ func (c *Client) sendByApp(ctx context.Context, msg *Message) (*Response, error)
 		}
 	}
 
+	data := make(map[string]string)
+	for k, v := range msg.Data {
+		data[k] = v.(string)
+	}
 	if len(msg.RegistrationIDs) > 0 && len(msg.RegistrationIDs) < 2 {
 		fcmMsg := &messaging.Message{
 			Token: msg.RegistrationIDs[0],
-			Data:  msg.Data,
+			Data:  data,
 		}
 
 		if msg.Notification != nil {
@@ -241,7 +245,7 @@ func (c *Client) sendByApp(ctx context.Context, msg *Message) (*Response, error)
 	} else {
 		fcmMsg := &messaging.MulticastMessage{
 			Tokens: msg.RegistrationIDs,
-			Data:   msg.Data,
+			Data:   data,
 		}
 
 		if msg.Notification != nil {
