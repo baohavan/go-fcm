@@ -214,7 +214,8 @@ func (c *Client) sendByApp(ctx context.Context, msg *Message) (*Response, error)
 
 	data := make(map[string]string)
 	for k, v := range msg.Data {
-		data[k] = v.(string)
+		sv, _ := json.Marshal(v)
+		data[k] = string(sv)
 	}
 	if len(msg.RegistrationIDs) > 0 && len(msg.RegistrationIDs) < 2 {
 		fcmMsg := &messaging.Message{
