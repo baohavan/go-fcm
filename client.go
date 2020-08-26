@@ -238,6 +238,7 @@ func (c *Client) sendByApp(ctx context.Context, msg *Message) (*Response, error)
 			res.Success = 1
 			res.Failure = 0
 		}
+		res.Error = err
 
 		res.ErrorResponseCode = r
 
